@@ -38,7 +38,7 @@ def error(message, line):
     :return: None
     """
 
-    sys.stderr.write("Error: %s:%s\n" % (message, line))
+    sys.stderr.write("Error : %s:%s\n" % (message, line))
 
 
 def parse(line):
@@ -60,7 +60,7 @@ def parse(line):
                 if pair:
                     x, y = pair.split(',')  # Remove the ,
                     x = x.strip(" (")
-                    point = int(x), int(y)  # Get the x, y coordinates for the point
+                    point = float(x), float(y)  # Get the x, y coordinates for the point
                     coords.append(point)  # Add the coordinate
             except:
                 error("Error in coordinate", pair + ')')
@@ -127,10 +127,10 @@ def intersection(segment1, segment2):
             x = Dx / D
             y = Dy / D
             # Convert back to integer if it is close
-            if abs(x - int(x)) < 0.01:
-                x = x
-            if abs(y - int(y)) < 0.01:
-                y = y
+            #if abs(x - int(x)) < 0.01:
+            #    x = int(x)
+           #if abs(y - int(y)) < 0.01:
+            #    y = int(y)
             return x, y
         else:
             return None
