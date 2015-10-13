@@ -60,7 +60,7 @@ def parse(line):
                 if pair:
                     x, y = pair.split(',')  # Remove the ,
                     x = x.strip(" (")
-                    point = float(x), float(y)  # Get the x, y coordinates for the point
+                    point = int(x), int(y)  # Get the x, y coordinates for the point
                     coords.append(point)  # Add the coordinate
             except:
                 error("Error in coordinate", pair + ')')
@@ -127,23 +127,24 @@ def intersection(segment1, segment2):
             x = Dx / D
             y = Dy / D
             # Convert back to integer if it is close
-            #if abs(x - int(x)) < 0.01:
-            #    x = int(x)
-           #if abs(y - int(y)) < 0.01:
-            #    y = int(y)
+            if abs(x - int(x)) < 0.01:
+                x = int(x)
+            if abs(y - int(y)) < 0.01:
+                y = int(y)
             return x, y
         else:
             return None
 
 
 def graph(line):
+
     segments = set()
     active = set()
     for name in streets:  # Go through each street
         street = streets[name]  # Get the street
         for segment in zip(street.coords, street.coords[1:]):  # make segments
-            if segment[0] > segment[1]:  # Make sure the segments are smallest x, largest x order
-                segment = segment[1], segment[0]  # Swap the order of the segment
+            # if segment[0] > segment[1]:  # Make sure the segments are smallest x, largest x order
+            #    segment = segment[1], segment[0]  # Swap the order of the segment
             segments.add(segment)  # Add it to the list
             active.add(segment[0])
             active.add(segment[1])
@@ -159,6 +160,7 @@ def graph(line):
                         intersections.add((second[0], point))
                         intersections.add((second[1], point))
                         add_point(points, point)
+                        active.add(point)
     print_points = [None] * len(points)
     for key in active:
         print_points[points[key] - 1] = key
