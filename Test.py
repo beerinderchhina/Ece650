@@ -128,9 +128,9 @@ def intersection(segment1, segment2):
             y = Dy / D
             # Convert back to integer if it is close
             if abs(x - int(x)) < 0.01:
-                x = int(x)
+                x = x
             if abs(y - int(y)) < 0.01:
-                y = int(y)
+                y = y
             return x, y
         else:
             return None
