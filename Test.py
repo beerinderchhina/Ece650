@@ -1,10 +1,36 @@
 from __future__ import division  # So we are not using integer division
 import sys  # for sys.argv
 import fileinput  # to read from file or stdin
+from numpy import where, dstack, diff, meshgrid
 
 streets = {}
 points = {}
 
+def intersection(A, B):
+
+    # min, max and all for arrays
+    amin = lambda x1, x2: where(x1<x2, x1, x2)
+    amax = lambda x1, x2: where(x1>x2, x1, x2)
+    aall = lambda abools: dstack(abools).all(axis=2)
+    slope = lambda line: (lambda d: d[:,1]/d[:,0])(diff(line, axis=0))
+
+    x11, x21 = meshgrid(A[:-1, 0], B[:-1, 0])
+    x12, x22 = meshgrid(A[1:, 0], B[1:, 0])
+    y11, y21 = meshgrid(A[:-1, 1], B[:-1, 1])
+    y12, y22 = meshgrid(A[1:, 1], B[1:, 1])
+
+    m1, m2 = meshgrid(slope(A), slope(B))
+    m1inv, m2inv = 1/m1, 1/m2
+
+    yi = (m1*(x21-x11-m2inv*y21) + y11)/(1 - m1*m2inv)
+    xi = (yi - y21)*m2inv + x21
+
+    xconds = (amin(x11, x12) < xi, xi <= amax(x11, x12), 
+              amin(x21, x22) < xi, xi <= amax(x21, x22) )
+    yconds = (amin(y11, y12) < yi, yi <= amax(y11, y12),
+              amin(y21, y22) < yi, yi <= amax(y21, y22) )
+
+    return xi[aall(xconds)], yi[aall(yconds)]
 
 def add_point(points, point):
     """
@@ -114,7 +140,7 @@ def line(p1, p2):
     return A, B, -C
 
 
-def intersection(segment1, segment2):
+'''def intersection(segment1, segment2):
     if intersect(segment1, segment2):
         L1 = line(segment1[0], segment1[1])
         L2 = line(segment2[0], segment2[1])
@@ -134,7 +160,7 @@ def intersection(segment1, segment2):
             return x, y
         else:
             return None
-
+'''
 
 def graph(line):
 
