@@ -1,3 +1,6 @@
+
+
+
 #************************************************************
 # imports
 #************************************************************
@@ -124,7 +127,7 @@ def Check_intersections(a1,a2, b1,b2):
        result[1] > max(a1[1],a2[1],b1[1],b2[1]):
         return False
     
-    return tuple([result[0], result[1]])
+    return tuple([round(result[0],2), round(result[1],2)])
 
 
 
