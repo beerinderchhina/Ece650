@@ -1,5 +1,3 @@
-
-
 from __future__ import division  # So we are not using integer division
 import re
 import sys
@@ -9,6 +7,24 @@ import subprocess
 
 
 
+streets = []
+graph = Graph()
+
+regx_name = '\".+\"'
+regx_num = '-?\d+'
+regx_coord = r'\(\s*'+regx_num+'\s*,\s*'+regx_num+'\s*\)'
+
+rgx_add_st = '\s*a\s+'+regx_name+'\s*('+regx_coord+'\s*){2,}\s*$'
+rgx_change_st = '\s*c\s+'+regx_name+'\s*('+regx_coord+'\s*){2,}\s*$'
+rgx_remove_st = '\s*r\s+'+regx_name+'\s*$'
+rgx_printg_st = '\s*g\s*'
+
+rgx_chck_add = re.compile(rgx_add_st)
+rgx_chck_change = re.compile(rgx_change_st)
+rgx_chck_remove = re.compile(rgx_remove_st)
+rgx_chck_printg = re.compile(rgx_printg_st)
+
+# Start Program
 class Street():
     def __init__(self, name, coords):
         self.name = name
@@ -133,23 +149,6 @@ def checkintersections(a1,a2, b1,b2):
 cmds = {'a': add, 'c': change, 'g': graph, 'r': remove} # the different commands
 
 
-
-streets = []
-graph = Graph()
-
-regx_name = '\".+\"'
-regx_num = '-?\d+'
-regx_coord = r'\(\s*'+regx_num+'\s*,\s*'+regx_num+'\s*\)'
-
-rgx_add_st = '\s*a\s+'+regx_name+'\s*('+regx_coord+'\s*){2,}\s*$'
-rgx_change_st = '\s*c\s+'+regx_name+'\s*('+regx_coord+'\s*){2,}\s*$'
-rgx_remove_st = '\s*r\s+'+regx_name+'\s*$'
-rgx_printg_st = '\s*g\s*'
-
-rgx_chck_add = re.compile(rgx_add_st)
-rgx_chck_change = re.compile(rgx_change_st)
-rgx_chck_remove = re.compile(rgx_remove_st)
-rgx_chck_printg = re.compile(rgx_printg_st)
 
 while True:
 
