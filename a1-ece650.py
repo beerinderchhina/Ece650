@@ -146,17 +146,7 @@ def add(line):
     streets[name] = Street(coords)
 
 
-def parse(line):
-	"""
-	Get the name and coordinates from an input line
 
-	:param line: The command line
-	:return: name, coordinates
-	"""
-
-    parts = line.split('"')  # The name is inside " pair
-	
-	
 def change(line):
     name, coords = parse(line)
     if not name:
