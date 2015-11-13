@@ -1,14 +1,6 @@
-#!/usr/bin/env python
-# http://docs.python.org/tutorial/
-# http://docs.python.org/library/re.html
-
-
-
-
 #************************************************************
 # imports
 #************************************************************
-
 from __future__ import division  # So we are not using integer division
 import re
 import sys
