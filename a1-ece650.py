@@ -1,4 +1,7 @@
-from __future__ import division  # So we are not using integer division
+#************************************************************
+# imports
+#************************************************************
+
 import re
 import sys
 import math
@@ -6,48 +9,34 @@ from numpy import *
 import subprocess
 
 
+#************************************************************
+# defines
+#************************************************************
+
+name_rx = '\".+\"'
+num_rx = '-?\d+'
+coord_rx = r'\(\s*'+num_rx+'\s*,\s*'+num_rx+'\s*\)'
+
+cmd_a_rx = '\s*a\s+'+name_rx+'\s*('+coord_rx+'\s*){2,}\s*$'
+cmd_c_rx = '\s*c\s+'+name_rx+'\s*('+coord_rx+'\s*){2,}\s*$'
+cmd_r_rx = '\s*r\s+'+name_rx+'\s*$'
+cmd_g_rx = '\s*g\s*'
+
+cmd_a_chk = re.compile(cmd_a_rx)
+cmd_c_chk = re.compile(cmd_c_rx)
+cmd_r_chk = re.compile(cmd_r_rx)
+cmd_g_chk = re.compile(cmd_g_rx)
+
 
 class Street():
     def __init__(self, name, coords):
         self.name = name
         self.coords = coords
 
-		
 
 class Graph():
     vs = []
     es = []
-	
-	# http://stackoverflow.com/questions/3838329/how-can-i-check-if-two-segments-intersect
-	def ccw(A, B, C):
-		return (C[1] - A[1]) * (B[0] - A[0]) > (B[1] - A[1]) * (C[0] - A[0])
-
-	# Return true if line segments AB and CD intersect
-	def intersect(AB, CD):
-		A, B = AB
-		C, D = CD
-		return ccw(A, C, D) != ccw(B, C, D) and ccw(A, B, C) != ccw(A, B, D)
-
-	# http://stackoverflow.com/questions/20677795/find-the-point-of-intersecting-lines
-	def line(p1, p2):
-		A = (p1[1] - p2[1])
-		B = (p2[0] - p1[0])
-		C = (p1[0] * p2[1] - p2[0] * p1[1])
-		return A, B, -C
-
-	def intersection(segment1, segment2):
-		L1 = line(segment1[0], segment1[1])
-		L2 = line(segment2[0], segment2[1])
-
-		D  = L1[0] * L2[1] - L1[1] * L2[0]
-		Dx = L1[2] * L2[1] - L1[1] * L2[2]
-		Dy = L1[0] * L2[2] - L1[2] * L2[0]
-		if D != 0:
-			x = Dx / D
-			y = Dy / D
-			return x, y
-		else:
-			return None
 
     def coord2index(self, coord):
         if coord in self.vs:
@@ -92,62 +81,26 @@ class Graph():
         return string
         
 
-		
-
-#************************************************************
-# Error Output
-#************************************************************
-def prnterror(message):
-    """
-    Displays an error message to stderr
-
-    :param message: The error message to display
-    :param line: The line where the error occurred
-    :return: None
-    """
-
-    sys.stderr.write("%s\n" % (message))		
-		
-		
-def parse(line):
-    """
-    Get the name and coordinates from an input line
-
-    :param line: The command line
-    :return: name, coordinates
-    """
-
-    parts = line.split('"')     # The name is inside " pair
-    coords = []                 # No coordinates yet
-    if len(parts) < 2:          # No name specified
-        return None, coords     # No name, No coords
-    if len(parts) == 3:         # We have coordinates to process
-        for pair in parts[2].split(')'):   # Each coordinate pair
-            try:
-                if pair:
-                    x, y = pair.split(',')  # Remove the ,
-                    x = x.strip(" (")
-                    point = int(x), int(y) # Get the x, y coordinates for the point
-                    coords.append(point)    # Add the coordinate
-            except:
-                error("Error in coordinate", pair + ')')
-                return parts[1], []     # 1 bad coordinate at least, so return no coordinates
-    return parts[1], coords         # name, [coords]
 
 
 
+#******************************
+# Line Intersect
+# http://infohost.nmt.edu/tcc/help/lang/python/examples/homcoord/Line-intersect.html
+# http://stackoverflow.com/questions/3252194/numpy-and-line-intersections
+#******************************
 
-def checkifparallel( a ) :
+def perp( a ) :
     b = empty_like(a)
     b[0] = -a[1]
     b[1] = a[0]
     return b
     
-def checkintersections(a1,a2, b1,b2):
+def seg_intersect(a1,a2, b1,b2):
     da = a2-a1
     db = b2-b1
     dp = a1-b1
-    dap = checkifparallel(da)
+    dap = perp(da)
     denom = dot(dap, db)
     num = dot(dap, dp)
     result = (num / denom)*db + b1
@@ -160,76 +113,66 @@ def checkintersections(a1,a2, b1,b2):
     
     return tuple([result[0], result[1]])
 
-cmds = {'a': add, 'c': change, 'g': graph, 'r': remove} # the different commands
 
 
+#************************************************************
+# main
+#************************************************************
 
 streets = []
 graph = Graph()
 
-regx_name = '\".+\"'
-regx_num = '-?\d+'
-regx_coord = r'\(\s*'+regx_num+'\s*,\s*'+regx_num+'\s*\)'
-
-rgx_add_st = '\s*a\s+'+regx_name+'\s*('+regx_coord+'\s*){2,}\s*$'
-rgx_change_st = '\s*c\s+'+regx_name+'\s*('+regx_coord+'\s*){2,}\s*$'
-rgx_remove_st = '\s*r\s+'+regx_name+'\s*$'
-rgx_printg_st = '\s*g\s*'
-
-rgx_chck_add = re.compile(rgx_add_st)
-rgx_chck_change = re.compile(rgx_change_st)
-rgx_chck_remove = re.compile(rgx_remove_st)
-rgx_chck_printg = re.compile(rgx_printg_st)
-
 while True:
 
-   
+    #******************************
+    # get raw input and check cmd validity
+    #******************************
     cmd = raw_input()
     
     #******************************    
-    # Check commands
+    # Add a new street
     #******************************
-    if rgx_chck_add.match(cmd) or rgx_chck_change.match(cmd) or rgx_chck_remove.match(cmd):
+    if cmd_a_chk.match(cmd) or cmd_c_chk.match(cmd) or cmd_r_chk.match(cmd):
         # recoord name and coordinates (if they exist)
-        name = re.findall(regx_name,cmd)[0]
-        coords = [ tuple([ float(num) for num in re.findall(regx_num,coord) ]) \
-                  for coord in re.findall(regx_coord,cmd)]
+        name = re.findall(name_rx,cmd)[0]
+        coords = [ tuple([ float(num) for num in re.findall(num_rx,coord) ]) \
+                  for coord in re.findall(coord_rx,cmd)]
 
         # Get current street list
         name_set = [ street.name for street in streets]
 
-        #******************************   
+        #******************************    a "test01" (0,0) (10,10)
 
         # Add a new street
         #******************************
-        if rgx_chck_add.match(cmd):
+        if cmd_a_chk.match(cmd):
             if name not in name_set:
                 streets.append(Street(name, coords))
             else:
-                prnterror('Error: street currently exists.')
+                print('Error: street currently exists.')
 
         else:
             if name in name_set:
                 #******************************        
-                # street Change
+                # Change an existing street
                 #******************************
-                if rgx_chck_change.match(cmd):
+                if cmd_c_chk.match(cmd):
                     index = name_set.index(name)
                     streets[index].coords = coords
                 #******************************
-                # street Remove
+                # Remove an existing street
                 #******************************
                 else:
                     index = name_set.index(name)
                     streets.pop(index)
             else:
-                prnterror('Error: \'c\' or \'r\' specified for a street that does not exist.')
+                print('Error: \'c\' or \'r\' specified for a street that does not exist.')
 
 
     #******************************           
-    # Output
+    # Generate and print Graph
     #******************************
-    elif rgx_chck_printg.match(cmd):
+    elif cmd_g_chk.match(cmd):
 
         graph.vs = []
         graph.es = []
@@ -242,7 +185,7 @@ while True:
                     for n in range(len(streets[j].coords)-1):
                         x3 = streets[j].coords[n]
                         x4 = streets[j].coords[n+1]
-                        x5 = checkintersections(array(x1), array(x2), array(x3), array(x4))
+                        x5 = seg_intersect(array(x1), array(x2), array(x3), array(x4))
 
                         if x5 != False:
                             graph.add_vertex(x1)
@@ -262,7 +205,7 @@ while True:
     # Input Error:
     #******************************
     else:
-        prnterror('Error: Incorrect input format')
+        print('Error: Incorrect input format')
     
 
       
