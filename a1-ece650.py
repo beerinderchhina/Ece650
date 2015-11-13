@@ -131,7 +131,7 @@ def checkintersections(a1,a2, b1,b2):
     
     return tuple([result[0], result[1]])
 
-cmds = {'a': add, 'r': remove} # the different commands
+#cmds = {'a': add, 'r': remove} # the different commands
 
 def add(line):
     name, coords = parse(line)
