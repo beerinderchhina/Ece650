@@ -7,51 +7,47 @@ import subprocess
 
 
 
-streets = []
-graph = Graph()
-
-regx_name = '\".+\"'
-regx_num = '-?\d+'
-regx_coord = r'\(\s*'+regx_num+'\s*,\s*'+regx_num+'\s*\)'
-
-rgx_add_st = '\s*a\s+'+regx_name+'\s*('+regx_coord+'\s*){2,}\s*$'
-rgx_change_st = '\s*c\s+'+regx_name+'\s*('+regx_coord+'\s*){2,}\s*$'
-rgx_remove_st = '\s*r\s+'+regx_name+'\s*$'
-rgx_printg_st = '\s*g\s*'
-
-rgx_chck_add = re.compile(rgx_add_st)
-rgx_chck_change = re.compile(rgx_change_st)
-rgx_chck_remove = re.compile(rgx_remove_st)
-rgx_chck_printg = re.compile(rgx_printg_st)
-
-# Start Program
 class Street():
     def __init__(self, name, coords):
         self.name = name
         self.coords = coords
 
 		
-#************************************************************
-# Error Output
-#************************************************************
-def prnterror(message):
-    """
-    Displays an error message to stderr
-
-    :param message: The error message to display
-    :param line: The line where the error occurred
-    :return: None
-    """
-
-    sys.stderr.write("%s\n" % (message))
-		
-
 
 class Graph():
     vs = []
     es = []
 	
+	# http://stackoverflow.com/questions/3838329/how-can-i-check-if-two-segments-intersect
+	def ccw(A, B, C):
+		return (C[1] - A[1]) * (B[0] - A[0]) > (B[1] - A[1]) * (C[0] - A[0])
 
+	# Return true if line segments AB and CD intersect
+	def intersect(AB, CD):
+		A, B = AB
+		C, D = CD
+		return ccw(A, C, D) != ccw(B, C, D) and ccw(A, B, C) != ccw(A, B, D)
+
+	# http://stackoverflow.com/questions/20677795/find-the-point-of-intersecting-lines
+	def line(p1, p2):
+		A = (p1[1] - p2[1])
+		B = (p2[0] - p1[0])
+		C = (p1[0] * p2[1] - p2[0] * p1[1])
+		return A, B, -C
+
+	def intersection(segment1, segment2):
+		L1 = line(segment1[0], segment1[1])
+		L2 = line(segment2[0], segment2[1])
+
+		D  = L1[0] * L2[1] - L1[1] * L2[0]
+		Dx = L1[2] * L2[1] - L1[1] * L2[2]
+		Dy = L1[0] * L2[2] - L1[2] * L2[0]
+		if D != 0:
+			x = Dx / D
+			y = Dy / D
+			return x, y
+		else:
+			return None
 
     def coord2index(self, coord):
         if coord in self.vs:
@@ -95,6 +91,24 @@ class Graph():
         string += '} \n'
         return string
         
+
+		
+
+#************************************************************
+# Error Output
+#************************************************************
+def prnterror(message):
+    """
+    Displays an error message to stderr
+
+    :param message: The error message to display
+    :param line: The line where the error occurred
+    :return: None
+    """
+
+    sys.stderr.write("%s\n" % (message))		
+		
+		
 def parse(line):
     """
     Get the name and coordinates from an input line
@@ -116,7 +130,7 @@ def parse(line):
                     point = int(x), int(y) # Get the x, y coordinates for the point
                     coords.append(point)    # Add the coordinate
             except:
-                prnterror("Error in coordinate", pair + ')')
+                error("Error in coordinate", pair + ')')
                 return parts[1], []     # 1 bad coordinate at least, so return no coordinates
     return parts[1], coords         # name, [coords]
 
@@ -149,6 +163,23 @@ def checkintersections(a1,a2, b1,b2):
 cmds = {'a': add, 'c': change, 'g': graph, 'r': remove} # the different commands
 
 
+
+streets = []
+graph = Graph()
+
+regx_name = '\".+\"'
+regx_num = '-?\d+'
+regx_coord = r'\(\s*'+regx_num+'\s*,\s*'+regx_num+'\s*\)'
+
+rgx_add_st = '\s*a\s+'+regx_name+'\s*('+regx_coord+'\s*){2,}\s*$'
+rgx_change_st = '\s*c\s+'+regx_name+'\s*('+regx_coord+'\s*){2,}\s*$'
+rgx_remove_st = '\s*r\s+'+regx_name+'\s*$'
+rgx_printg_st = '\s*g\s*'
+
+rgx_chck_add = re.compile(rgx_add_st)
+rgx_chck_change = re.compile(rgx_change_st)
+rgx_chck_remove = re.compile(rgx_remove_st)
+rgx_chck_printg = re.compile(rgx_printg_st)
 
 while True:
 
