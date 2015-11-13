@@ -36,60 +36,60 @@ cmd_r_chk = re.compile(cmd_r_rx)
 cmd_g_chk = re.compile(cmd_g_rx)
 
 
-class Street():
-    def __init__(self, name, coords):
-        self.name = name
-        self.coords = coords
+    class Street():
+        def __init__(self, name, coords):
+            self.name = name
+            self.coords = coords
 
 
-class Graph():
-    vs = []
-    es = []
-
-    def coord2index(self, coord):
-        if coord in self.vs:
-            return self.vs.index(coord)
-        else:
-            return False
-            
-    def index2coord(self, index):
-        if index < len(self.vs):
-            return self.vs[index]
-        else:
-            return False
-
-    def add_vertex(self, coord):
-        if coord not in self.vs:
-            self.vs.append(coord)       
-
-    def add_edge(self, v1, v2):
-        edge = sorted([v1,v2])
-        if edge not in self.vs:
-            self.es.append(edge)       
-
-    def node2str(self, coord):
-        return '('+str(coord[0])+','+str(coord[1])+')'
-
-    def edge2str(self, edge):
-        return '<'+str(edge[0])+','+str(edge[1])+'>'
+    class Graph():
+        vs = []
+        es = []
     
-    def __str__(self):
-        string = ''
-        string += 'V = { \n'
-        for i in range(len(self.vs)):
-            string += '  ' + str(i) + ':  ' + self.node2str(self.vs[i]) + '\n'
-        string += '} \n'
-        string += 'E = { \n'
-        for edge in self.es:
-            string += '  ' + self.edge2str(edge) + ', \n'
-        if len(self.es) > 0:
-            string = string[:-3]
-            string += '\n'
-        string += '} \n'
-        return string
+        def coord2index(self, coord):
+            if coord in self.vs:
+                return self.vs.index(coord)
+            else:
+                return False
+                
+        def index2coord(self, index):
+            if index < len(self.vs):
+                return self.vs[index]
+            else:
+                return False
+    
+        def add_vertex(self, coord):
+            if coord not in self.vs:
+                self.vs.append(coord)       
+    
+        def add_edge(self, v1, v2):
+            edge = sorted([v1,v2])
+            if edge not in self.vs:
+                self.es.append(edge)       
+    
+        def node2str(self, coord):
+            return '('+str(coord[0])+','+str(coord[1])+')'
+    
+        def edge2str(self, edge):
+            return '<'+str(edge[0])+','+str(edge[1])+'>'
         
-
-
+        def __str__(self):
+            string = ''
+            string += 'V = { \n'
+            for i in range(len(self.vs)):
+                string += '  ' + str(i) + ':  ' + self.node2str(self.vs[i]) + '\n'
+            string += '} \n'
+            string += 'E = { \n'
+            for edge in self.es:
+                string += '  ' + self.edge2str(edge) + ', \n'
+            if len(self.es) > 0:
+                string = string[:-3]
+                string += '\n'
+            string += '} \n'
+            return string
+            
+    
+    
 
 
 #******************************
