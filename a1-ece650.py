@@ -1,3 +1,11 @@
+#!/usr/bin/env python
+# http://docs.python.org/tutorial/
+# http://docs.python.org/library/re.html
+
+# a "Cases" (0,0) (10,10)
+# a "ceses02" (10,0) (0,10)
+
+
 #************************************************************
 # imports
 #************************************************************
