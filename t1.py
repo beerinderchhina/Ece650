@@ -9,10 +9,10 @@
 # imports
 #************************************************************
 
+from __future__ import division  # So we are not using integer division
 import re
 import sys
 import math
-from __future__ import division  # So we are not using integer division
 from numpy import *
 import subprocess
 
