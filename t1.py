@@ -2,8 +2,7 @@
 # http://docs.python.org/tutorial/
 # http://docs.python.org/library/re.html
 
-# a "test01" (0,0) (10,10)
-# a "test02" (10,0) (0,10)
+
 
 
 #************************************************************
@@ -13,27 +12,28 @@
 import re
 import sys
 import math
+from __future__ import division  # So we are not using integer division
 from numpy import *
 import subprocess
 
 
 #************************************************************
-# defines
+# Regex
 #************************************************************
 
-name_rx = '\".+\"'
-num_rx = '-?\d+'
-coord_rx = r'\(\s*'+num_rx+'\s*,\s*'+num_rx+'\s*\)'
+rgx_name = '\".+\"'
+rgx_number = '-?\d+'
+rgx_street_coordinates = r'\(\s*'+rgx_number+'\s*,\s*'+rgx_number+'\s*\)'
 
-cmd_a_rx = '\s*a\s+'+name_rx+'\s*('+coord_rx+'\s*){2,}\s*$'
-cmd_c_rx = '\s*c\s+'+name_rx+'\s*('+coord_rx+'\s*){2,}\s*$'
-cmd_r_rx = '\s*r\s+'+name_rx+'\s*$'
-cmd_g_rx = '\s*g\s*'
+rgx_input_add = '\s*a\s+'+rgx_name+'\s*('+rgx_street_coordinates+'\s*){2,}\s*$'
+cmd_c_rx = '\s*c\s+'+rgx_name+'\s*('+rgx_street_coordinates+'\s*){2,}\s*$'
+rgx_input_remove = '\s*r\s+'+rgx_name+'\s*$'
+rgx_input_graph = '\s*g\s*'
 
-cmd_a_chk = re.compile(cmd_a_rx)
-cmd_c_chk = re.compile(cmd_c_rx)
-cmd_r_chk = re.compile(cmd_r_rx)
-cmd_g_chk = re.compile(cmd_g_rx)
+rgx_check_addstreet = re.compile(rgx_input_add)
+rgx_check_changestreet = re.compile(cmd_c_rx)
+rgx_check_removestreet = re.compile(rgx_input_remove)
+rgx_check_graph = re.compile(rgx_input_graph)
 
 
 class Street():
@@ -46,23 +46,23 @@ class Graph():
     vs = []
     es = []
 
-    def coord2index(self, coord):
+    def getindexCoords(self, coord):
         if coord in self.vs:
             return self.vs.index(coord)
         else:
             return False
             
-    def index2coord(self, index):
+    def getcoordsfrmidx(self, index):
         if index < len(self.vs):
             return self.vs[index]
         else:
             return False
 
-    def add_vertex(self, coord):
+    def vertex_append(self, coord):
         if coord not in self.vs:
             self.vs.append(coord)       
 
-    def add_edge(self, v1, v2):
+    def edge_append(self, v1, v2):
         edge = sorted([v1,v2])
         if edge not in self.vs:
             self.es.append(edge)       
@@ -93,22 +93,35 @@ class Graph():
 
 
 #******************************
-# Line Intersect
+# # http://stackoverflow.com/questions/3838329/how-can-i-check-if-two-segments-intersect
+# http://stackoverflow.com/questions/20677795/find-the-point-of-intersecting-lines
 # http://infohost.nmt.edu/tcc/help/lang/python/examples/homcoord/Line-intersect.html
 # http://stackoverflow.com/questions/3252194/numpy-and-line-intersections
 #******************************
 
-def perp( a ) :
+def prnterror(message,line):
+    """
+    Displays an error message to stderr
+
+    :param message: The error message to display
+    :param line: The line where the error occurred
+    :return: None
+    """
+
+    sys.stderr.write("%s:%s\n" % (message, line))
+	
+	
+def check_parallel( a ) :
     b = empty_like(a)
     b[0] = -a[1]
     b[1] = a[0]
     return b
     
-def seg_intersect(a1,a2, b1,b2):
+def Check_intersections(a1,a2, b1,b2):
     da = a2-a1
     db = b2-b1
     dp = a1-b1
-    dap = perp(da)
+    dap = check_parallel(da)
     denom = dot(dap, db)
     num = dot(dap, dp)
     result = (num / denom)*db + b1
@@ -140,11 +153,11 @@ while True:
     #******************************    
     # Add a new street
     #******************************
-    if cmd_a_chk.match(cmd) or cmd_c_chk.match(cmd) or cmd_r_chk.match(cmd):
+    if rgx_check_addstreet.match(cmd) or rgx_check_changestreet.match(cmd) or rgx_check_removestreet.match(cmd):
         # recoord name and coordinates (if they exist)
-        name = re.findall(name_rx,cmd)[0]
-        coords = [ tuple([ float(num) for num in re.findall(num_rx,coord) ]) \
-                  for coord in re.findall(coord_rx,cmd)]
+        name = re.findall(rgx_name,cmd)[0]
+        coords = [ tuple([ float(num) for num in re.findall(rgx_number,coord) ]) \
+                  for coord in re.findall(rgx_street_coordinates,cmd)]
 
         # Get current street list
         name_set = [ street.name for street in streets]
@@ -153,18 +166,18 @@ while True:
 
         # Add a new street
         #******************************
-        if cmd_a_chk.match(cmd):
+        if rgx_check_addstreet.match(cmd):
             if name not in name_set:
                 streets.append(Street(name, coords))
             else:
-                print('Error: street currently exists.')
+                prnterror('Error: street currently exists.',name)
 
         else:
             if name in name_set:
                 #******************************        
                 # Change an existing street
                 #******************************
-                if cmd_c_chk.match(cmd):
+                if rgx_check_changestreet.match(cmd):
                     index = name_set.index(name)
                     streets[index].coords = coords
                 #******************************
@@ -174,13 +187,13 @@ while True:
                     index = name_set.index(name)
                     streets.pop(index)
             else:
-                print('Error: \'c\' or \'r\' specified for a street that does not exist.')
+                prnterror('Error: \'c\' or \'r\' specified for a street that does not exist.',name)
 
 
     #******************************           
     # Generate and print Graph
     #******************************
-    elif cmd_g_chk.match(cmd):
+    elif rgx_check_graph.match(cmd):
 
         graph.vs = []
         graph.es = []
@@ -193,19 +206,19 @@ while True:
                     for n in range(len(streets[j].coords)-1):
                         x3 = streets[j].coords[n]
                         x4 = streets[j].coords[n+1]
-                        x5 = seg_intersect(array(x1), array(x2), array(x3), array(x4))
+                        x5 = Check_intersections(array(x1), array(x2), array(x3), array(x4))
 
                         if x5 != False:
-                            graph.add_vertex(x1)
-                            graph.add_vertex(x2)
-                            graph.add_vertex(x3)
-                            graph.add_vertex(x4)
-                            graph.add_vertex(x5)
+                            graph.vertex_append(x1)
+                            graph.vertex_append(x2)
+                            graph.vertex_append(x3)
+                            graph.vertex_append(x4)
+                            graph.vertex_append(x5)
 
-                            graph.add_edge(graph.coord2index(x1),graph.coord2index(x5))
-                            graph.add_edge(graph.coord2index(x2),graph.coord2index(x5))
-                            graph.add_edge(graph.coord2index(x3),graph.coord2index(x5))
-                            graph.add_edge(graph.coord2index(x4),graph.coord2index(x5))
+                            graph.edge_append(graph.getindexCoords(x1),graph.getindexCoords(x5))
+                            graph.edge_append(graph.getindexCoords(x2),graph.getindexCoords(x5))
+                            graph.edge_append(graph.getindexCoords(x3),graph.getindexCoords(x5))
+                            graph.edge_append(graph.getindexCoords(x4),graph.getindexCoords(x5))
 
         print(graph)         
 
@@ -213,7 +226,7 @@ while True:
     # Input Error:
     #******************************
     else:
-        print('Error: Incorrect input format')
+        prnterror('Error: Incorrect input format','Format Error')
     
 
       
