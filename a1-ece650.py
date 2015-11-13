@@ -1,21 +1,11 @@
 
 
-#************************************************************
-# imports
-#************************************************************
 from __future__ import division  # So we are not using integer division
 import re
 import sys
 import math
 from numpy import *
 import subprocess
-
-
-
-
-
-
-
 
 
 
@@ -45,36 +35,7 @@ class Graph():
     vs = []
     es = []
 	
-	# http://stackoverflow.com/questions/3838329/how-can-i-check-if-two-segments-intersect
-	def ccw(A, B, C):
-		return (C[1] - A[1]) * (B[0] - A[0]) > (B[1] - A[1]) * (C[0] - A[0])
 
-	# Return true if line segments AB and CD intersect
-	def intersect(AB, CD):
-		A, B = AB
-		C, D = CD
-		return ccw(A, C, D) != ccw(B, C, D) and ccw(A, B, C) != ccw(A, B, D)
-
-	# http://stackoverflow.com/questions/20677795/find-the-point-of-intersecting-lines
-	def line(p1, p2):
-		A = (p1[1] - p2[1])
-		B = (p2[0] - p1[0])
-		C = (p1[0] * p2[1] - p2[0] * p1[1])
-		return A, B, -C
-
-	def intersection(segment1, segment2):
-		L1 = line(segment1[0], segment1[1])
-		L2 = line(segment2[0], segment2[1])
-
-		D  = L1[0] * L2[1] - L1[1] * L2[0]
-		Dx = L1[2] * L2[1] - L1[1] * L2[2]
-		Dy = L1[0] * L2[2] - L1[2] * L2[0]
-		if D != 0:
-			x = Dx / D
-			y = Dy / D
-			return x, y
-		else:
-			return None
 
     def coord2index(self, coord):
         if coord in self.vs:
@@ -139,7 +100,7 @@ def parse(line):
                     point = int(x), int(y) # Get the x, y coordinates for the point
                     coords.append(point)    # Add the coordinate
             except:
-                error("Error in coordinate", pair + ')')
+                prnterror("Error in coordinate", pair + ')')
                 return parts[1], []     # 1 bad coordinate at least, so return no coordinates
     return parts[1], coords         # name, [coords]
 
