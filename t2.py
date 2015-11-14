@@ -357,7 +357,7 @@ def generate_graph():
                     #add Edge
                     test_and_add_edge((vertexid,vertexid_n1))
                 except Exception, e:
-                    #debug("left neighbor not found")
+                    debug("left neighbor not found")
                 try:
                     point_n2 = street[index+1] #if tthere is a point after
                     vertexid_n2 = test_and_add_vertex(point_n2)
