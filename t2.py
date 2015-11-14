@@ -358,7 +358,7 @@ def generate_graph():
                     test_and_add_edge((vertexid,vertexid_n1))
                 except Exception, e:
                     debug("left neighbor not found")
-                try:
+                try:					
                     point_n2 = street[index+1] #if tthere is a point after
                     vertexid_n2 = test_and_add_vertex(point_n2)
                     #add Edge, with found or new vertex
@@ -383,7 +383,7 @@ def test_and_add_vertex(vertex):
 
     #not in graph
     count_vertex = count_vertex + 1
-    vid = "v" + str(count_vertex)
+    vid =  str(count_vertex)
     Vertexes[vid] = vertex
 
     return vid
@@ -391,7 +391,6 @@ def test_and_add_vertex(vertex):
 
 def print_graph():
     if (mode_debug):
-        print "=====GRAPH====="
         print "V = {"
         for key in Vertexes:
             print "    " + str(key) + ":    " + str(Vertexes[key])
